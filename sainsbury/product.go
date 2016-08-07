@@ -54,7 +54,7 @@ func (p *Product) getDescription() {
 
 	if err != nil {
 		fmt.Println(err)
-		//wg.Done()
+		wg.Done()
 		return
 	}
 

@@ -7,6 +7,13 @@ import (
 	"sync"
 )
 
+// Products is the main struct
+type Products struct {
+	Products []Product `json:"results"`
+	Total    float64   `json:"total"`
+}
+
+// GetList getting all the products from the added url
 func (p *Products) GetList(url string) error {
 	source, err := getRawHTML(url)
 	defer source.Close()
@@ -21,11 +28,7 @@ func (p *Products) GetList(url string) error {
 	return nil
 }
 
-type Products struct {
-	Products []Product `json:"results"`
-	Total    float64   `json:"total"`
-}
-
+// ToJSON returns with the products marshaled json string
 func (p *Products) ToJSON() ([]byte, error) {
 	jsonString, err := json.Marshal(p)
 

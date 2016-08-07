@@ -9,6 +9,7 @@ import (
 	"sync"
 )
 
+// Product is the base struct of the product response
 type Product struct {
 	Title       string  `json:"title"`
 	Size        string  `json:"size"`

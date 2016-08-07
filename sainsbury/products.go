@@ -1,8 +1,8 @@
 package sainsbury
 
 import (
-	"code.google.com/p/go.net/html"
 	"encoding/json"
+	"golang.org/x/net/html"
 	"io"
 	"sync"
 )

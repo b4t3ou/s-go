@@ -1,13 +1,10 @@
 package sainsbury
 
 import (
-	"bytes"
 	"code.google.com/p/go.net/html"
-	"io"
-	"net/http"
-	"strings"
-	"strconv"
 	"encoding/json"
+	"io"
+	"sync"
 )
 
 func (p *Products) GetList(url string) error {
@@ -19,25 +16,9 @@ func (p *Products) GetList(url string) error {
 	}
 
 	p.parseProducts(source)
+	p.getProductExtendedData()
 
 	return nil
-}
-
-func getRawHTML(url string) (io.ReadCloser, error) {
-	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte{}))
-
-	if err != nil {
-		return nil, err
-	}
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return resp.Body, nil
 }
 
 type Products struct {
@@ -104,32 +85,13 @@ func (p *Products) setProduct(tokenizer *html.Tokenizer) {
 	}
 }
 
-type Product struct {
-	Title       string  `json:"title"`
-	Size        string  `json:"size"`
-	UnitPrice   float64 `json:"unit_price"`
-	Description string  `json:"description"`
-	url         string
-}
+func (p *Products) getProductExtendedData() {
+	wg := sync.WaitGroup{}
+	wg.Add(len(p.Products))
 
-func (p *Product) setTitleAndProductUrl(token *html.Token, tokenizer *html.Tokenizer) {
-	if token.Data == "a" {
-		p.url = token.Attr[0].Val
-		tokenizer.NextIsNotRawText()
-		tokenizer.Next()
-		p.Title = strings.TrimSpace(html.UnescapeString(tokenizer.Token().String()))
-	}
-}
-
-func (p *Product) setUnitPrice(token *html.Token, tokenizer *html.Tokenizer) {
-	tokenizer.NextIsNotRawText()
-	tokenizer.Next()
-	priceString := strings.TrimSpace(tokenizer.Token().String())
-	floatPrice, err := strconv.ParseFloat(priceString[2:len(priceString)], 64)
-
-	if err != nil {
-		return
+	for key := range p.Products {
+		go p.Products[key].getExtendedData(&wg)
 	}
 
-	p.UnitPrice = floatPrice
+	wg.Wait()
 }
